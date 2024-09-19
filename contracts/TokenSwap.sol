@@ -9,6 +9,7 @@ contract OrderBasedSwap {
     using SafeERC20 for IERC20;
 
     struct Order {
+        uint orderId;
         address seller;
         address tokenToSell;
         uint256 amountToSell;
@@ -32,6 +33,7 @@ contract OrderBasedSwap {
         IERC20(_tokenToSell).safeTransferFrom(msg.sender, address(this), _amountToSell);
 
         orders.push(Order({
+            orderId: orders.length,
             seller: msg.sender,
             tokenToSell: _tokenToSell,
             amountToSell: _amountToSell,
@@ -47,6 +49,8 @@ contract OrderBasedSwap {
         require(!orderFulfilled[_orderId], "Order already fulfilled");
 
         Order storage order = orders[_orderId];
+
+        require(IERC20(order.tokenToBuy).balanceOf(msg.sender) >= order.amountToBuy, "insufficient balance");
 
         IERC20(order.tokenToBuy).safeTransferFrom(msg.sender, order.seller, order.amountToBuy);
         IERC20(order.tokenToSell).safeTransfer(msg.sender, order.amountToSell);
